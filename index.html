@@ -39,12 +39,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Zen Kaku Goth
 #res.fin{color:var(--ink);font-size:clamp(34px,10vw,52px);font-weight:500}
 #res.err{font-family:"Zen Kaku Gothic New",sans-serif;font-size:18px;color:#ba1a1a}
 .keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:clamp(48px,9.4dvh,78px);gap:9px;padding:8px 2px 0;flex:none}
-.keys button{border:0;border-radius:999px;background:var(--num);color:var(--ink);font:500 clamp(28px,8.6vw,37px) Lexend,system-ui,sans-serif;cursor:pointer;touch-action:manipulation;transition:border-radius .15s}
+.keys button{border:0;border-radius:999px;background:var(--num);color:var(--ink);font:500 clamp(32px,9.8vw,42px) Lexend,system-ui,sans-serif;cursor:pointer;touch-action:manipulation;transition:border-radius .15s}
 .keys button:active{border-radius:22px}
 .keys .o{background:var(--op);color:var(--opink)}
-.keys .f{background:var(--fn);color:var(--fnink);font-size:clamp(23px,7vw,30px)}
+.keys .f{background:var(--fn);color:var(--fnink);font-size:clamp(26px,8vw,34px)}
 .keys .ac{background:var(--ac);color:var(--acink)}
-.keys .eq{background:var(--eq);color:var(--eqink);font-size:clamp(32px,10vw,44px)}
+.keys .eq{background:var(--eq);color:var(--eqink);font-size:clamp(36px,11.2vw,50px)}
 .keys .sh{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700}
 .keys .sh[aria-pressed=true]{background:var(--eq);color:var(--eqink)}
 button:focus-visible{outline:3px solid var(--line);outline-offset:2px}
@@ -81,7 +81,7 @@ button:focus-visible{outline:3px solid var(--line);outline-offset:2px}
     <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="o" data-k="−">−</button>
     <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="o" data-k="+">+</button>
     <button data-k="0">0</button><button data-k=".">.</button>
-    <button data-k="bs" aria-label="1文字消す"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M9 5h11v14H9l-6-7z"/><path d="M12 9l5 6M17 9l-5 6" stroke-linecap="round"/></svg></button>
+    <button data-k="bs" aria-label="1文字消す"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M9 5h11v14H9l-6-7z"/><path d="M12 9l5 6M17 9l-5 6" stroke-linecap="round"/></svg></button>
     <button class="eq" data-k="=">=</button>
   </div>
 </div>
