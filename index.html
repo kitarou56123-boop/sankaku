@@ -34,7 +34,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Zen Kaku Goth
 .icon{width:44px;height:44px;border:0;background:none;color:var(--ink);border-radius:50%;display:grid;place-items:center;cursor:pointer}
 .tag{font-size:14px;color:var(--muted)}
 .disp{flex:1 1 0;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:8px 12px 14px;font-family:Lexend,system-ui,sans-serif}
-#expr{font-size:clamp(26px,8vw,40px);text-align:right;white-space:nowrap;overflow:hidden;direction:rtl;unicode-bidi:plaintext;line-height:1.2;min-height:1.2em}
+#expr{font-size:clamp(26px,8vw,40px);text-align:right;white-space:nowrap;overflow:hidden;line-height:1.2;min-height:1.2em}
 #res{font-size:clamp(24px,7vw,34px);text-align:right;color:var(--muted);min-height:1.4em;margin-top:6px;padding-bottom:8px;border-bottom:2px solid var(--line);white-space:nowrap;overflow:hidden;line-height:1.2}
 #res.fin{color:var(--ink);font-size:clamp(34px,10vw,52px);font-weight:500}
 #res.err{font-family:"Zen Kaku Gothic New",sans-serif;font-size:18px;color:#ba1a1a}
@@ -161,7 +161,7 @@ function fmt(v){
 }
 function fit(el){el.style.fontSize='';let f=parseFloat(getComputedStyle(el).fontSize);while(el.scrollWidth>el.clientWidth&&f>16){f-=2;el.style.fontSize=f+'px'}}
 function render(){
-  $('expr').textContent=ex;
+  $('expr').textContent=ex;$('expr').scrollLeft=1e6;
   const sh=document.querySelector('.sh');sh.setAttribute('aria-pressed',inv);
   ['sin','cos','tan'].forEach(f=>document.querySelector(`[data-k=${f}]`).textContent=inv?f+'⁻¹':f);
   const r=$('res');r.className='';
