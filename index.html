@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>計算機</title>
+<meta name="apple-mobile-web-app-title" content="計算機">
+<meta name="theme-color" content="#f8f7fd">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Lexend:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* VOICE: やさしく、迷わない。スマホ標準電卓の延長
+   IDEA: いつもの電卓に sin・cos・tan が足されただけ
+   PICTURE: 画面いっぱいの丸いキーと、下線つきの大きな答え
+   COLOUR and TYPE: 淡いラベンダー地, 灰のすうじ, 水色の記号, 紫の＝ / Lexend + Zen Kaku Gothic New
+   LAYOUT: 上に式と答え、下にキー。全画面 */
+:root{color-scheme:light dark;
+--bg:light-dark(#f8f7fd,#141318);--ink:light-dark(#1b1b21,#e6e1e9);--muted:light-dark(#5e5d6b,#a9a6b3);
+--num:light-dark(#e3e3e8,#2c2b31);--op:light-dark(#dce2f9,#33384b);--opink:light-dark(#1a1c2e,#dce2f9);
+--fn:light-dark(#f1dcea,#4a3343);--fnink:light-dark(#3a1630,#f6dcee);
+--ac:light-dark(#d6e3ff,#284777);--acink:light-dark(#001b3e,#d6e3ff);
+--eq:light-dark(#745376,#e1b8e0);--eqink:light-dark(#ffffff,#2b1230);--line:light-dark(#745376,#e1b8e0)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Zen Kaku Gothic New",system-ui,sans-serif;overflow:hidden}
+.app{height:100dvh;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:8px 10px 12px}
+.bar{display:flex;justify-content:space-between;align-items:center;height:48px;padding:0 4px}
+.icon{width:44px;height:44px;border:0;background:none;color:var(--ink);border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.tag{font-size:14px;color:var(--muted)}
+.disp{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:8px 12px 14px;font-family:Lexend,system-ui,sans-serif}
+#expr{font-size:clamp(28px,9vw,44px);text-align:right;overflow-wrap:anywhere;line-height:1.2;min-height:1.2em}
+#res{font-size:clamp(24px,7vw,34px);text-align:right;color:var(--muted);min-height:1.4em;margin-top:6px;padding-bottom:8px;border-bottom:2px solid var(--line);overflow-wrap:anywhere}
+#res.fin{color:var(--ink);font-size:clamp(36px,11vw,56px);font-weight:500}
+#res.err{font-family:"Zen Kaku Gothic New",sans-serif;font-size:18px;color:#ba1a1a}
+.keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:clamp(52px,10.2dvh,80px);gap:10px;padding:8px 2px 0}
+.keys button{border:0;border-radius:999px;background:var(--num);color:var(--ink);font:400 clamp(24px,7.5vw,32px) Lexend,system-ui,sans-serif;cursor:pointer;touch-action:manipulation;transition:border-radius .15s}
+.keys button:active{border-radius:22px}
+.keys .o{background:var(--op);color:var(--opink)}
+.keys .f{background:var(--fn);color:var(--fnink);font-size:clamp(20px,6vw,26px)}
+.keys .ac{background:var(--ac);color:var(--acink)}
+.keys .eq{background:var(--eq);color:var(--eqink);font-size:clamp(28px,9vw,38px)}
+.keys .sh{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700}
+.keys .sh[aria-pressed=true]{background:var(--eq);color:var(--eqink)}
+button:focus-visible{outline:3px solid var(--line);outline-offset:2px}
+.sheet{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;max-width:520px;margin:0 auto;padding:8px 14px}
+.sheet.open{display:flex}
+.sheet h2{font-size:18px;margin:0;flex:1}
+.sheet header{display:flex;align-items:center;gap:6px;height:56px}
+.sheet header .txt{border:0;background:none;color:var(--muted);font:15px inherit;min-height:44px;cursor:pointer}
+#list{list-style:none;margin:0;padding:0;overflow-y:auto;flex:1}
+#list button{width:100%;display:block;text-align:right;padding:12px 6px;border:0;border-bottom:1px solid var(--num);background:none;color:var(--ink);font:18px Lexend,sans-serif;cursor:pointer}
+#list small{display:block;color:var(--muted);font-size:15px}
+.empty{color:var(--muted);padding:12px 4px}
+@media (prefers-reduced-motion:reduce){.keys button{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <button class="icon" id="hbtn" aria-label="計算の記録">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+    </button>
+    <span class="tag">角度は「度」で計算</span>
+  </div>
+  <div class="disp" aria-live="polite">
+    <div id="expr"></div>
+    <div id="res"></div>
+  </div>
+  <div class="keys" id="keys">
+    <button class="f" data-k="sin">sin</button><button class="f" data-k="cos">cos</button><button class="f" data-k="tan">tan</button>
+    <button class="f sh" data-k="2nd" aria-pressed="false">逆</button>
+    <button class="ac" data-k="ac">AC</button><button class="o" data-k="()">( )</button>
+    <button class="o" data-k="√(">√</button><button class="o" data-k="÷">÷</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="o" data-k="×">×</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="o" data-k="−">−</button>
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="o" data-k="+">+</button>
+    <button data-k="0">0</button><button data-k=".">.</button>
+    <button data-k="bs" aria-label="1文字消す"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M9 5h11v14H9l-6-7z"/><path d="M12 9l5 6M17 9l-5 6" stroke-linecap="round"/></svg></button>
+    <button class="eq" data-k="=">=</button>
+  </div>
+</div>
+<div class="sheet" id="sheet" role="dialog" aria-label="計算の記録">
+  <header>
+    <button class="icon" id="close" aria-label="閉じる"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <h2>計算の記録</h2>
+    <button class="txt" id="clr">記録を消す</button>
+  </header>
+  <ul id="list"></ul>
+</div>
+<script>
+{
+const $=id=>document.getElementById(id);
+let ex='',inv=false,last=null,done=false,hist=[];
+try{hist=JSON.parse(localStorage.getItem('trigcalc2')||'[]')}catch(e){}
+const save=()=>{try{localStorage.setItem('trigcalc2',JSON.stringify(hist.slice(0,30)))}catch(e){}};
+const MULTI=['sin⁻¹(','cos⁻¹(','tan⁻¹(','sin(','cos(','tan(','√('];
+const r2d=180/Math.PI;
+
+function tokenize(s){
+  const t=[];let i=0;
+  while(i<s.length){
+    const c=s[i];
+    if(/[0-9.]/.test(c)){let j=i;while(j<s.length&&/[0-9.e]/.test(s[j])||(s[j]==='-'&&s[j-1]==='e'))j++;const v=s.slice(i,j);if(isNaN(+v))throw'数字の入力が正しくありません';t.push({n:+v});i=j;continue}
+    const m=['sin⁻¹','cos⁻¹','tan⁻¹','sin','cos','tan','√'].find(w=>s.startsWith(w,i));
+    if(m){t.push({f:m});i+=m.length;continue}
+    if('+−×÷()'.includes(c)){t.push({o:c});i++;continue}
+    throw'入力が正しくありません';
+  }
+  return t;
+}
+function trig(f,x){
+  if(f.endsWith('⁻¹')){
+    if(f!=='tan⁻¹'&&Math.abs(x)>1)throw f+' は −1〜1 の数だけ計算できます';
+    return (f==='sin⁻¹'?Math.asin(x):f==='cos⁻¹'?Math.acos(x):Math.atan(x))*r2d;
+  }
+  const a=((x%360)+360)%360/r2d,z=v=>Math.abs(v)<1e-12?0:v;
+  const s=Math.sin(a),c=Math.cos(a);
+  if(f==='sin')return z(s);
+  if(f==='cos')return z(c);
+  if(Math.abs(c)<1e-12)throw'tan はこの角度では値がありません';
+  return z(s)/c;
+}
+function evaluate(s){
+  const t=tokenize(s);let p=0;
+  const is=o=>t[p]&&t[p].o===o;
+  const startsVal=k=>k&&(k.n!==undefined||k.f||k.o==='(');
+  function expr(){let v=term();while(is('+')||is('−')){const o=t[p++].o;const r=term();v=o==='+'?v+r:v-r}return v}
+  function term(){let v=unary();for(;;){
+    if(is('×')){p++;v*=unary()}
+    else if(is('÷')){p++;const r=unary();if(r===0)throw'0 では割れません';v/=r}
+    else if(startsVal(t[p]))v*=unary();
+    else return v}}
+  function unary(){if(is('−')){p++;return -unary()}if(is('+')){p++;return unary()}return prim()}
+  function group(){const v=expr();if(is(')'))p++;return v}
+  function prim(){
+    const k=t[p++];
+    if(!k)throw'式が途中で終わっています';
+    if(k.n!==undefined)return k.n;
+    if(k.o==='(')return group();
+    if(k.f){const x=is('(')?(p++,group()):unary();
+      if(k.f==='√'){if(x<0)throw'マイナスの数の √ は計算できません';return Math.sqrt(x)}
+      return trig(k.f,x)}
+    throw'式が正しくありません';
+  }
+  if(!t.length)throw'';
+  const v=expr();
+  if(p<t.length)throw'かっこの数が合っていません';
+  if(!isFinite(v))throw'計算できません';
+  return v;
+}
+function fmt(v){
+  let n=Number(v.toPrecision(12));if(Object.is(n,-0))n=0;
+  if(n!==0&&(Math.abs(n)>=1e12||Math.abs(n)<1e-9))return n.toExponential(8).replace(/\.?0+e/,'e');
+  return String(n);
+}
+function render(){
+  $('expr').textContent=ex;
+  const sh=document.querySelector('.sh');sh.setAttribute('aria-pressed',inv);
+  ['sin','cos','tan'].forEach(f=>document.querySelector(`[data-k=${f}]`).textContent=inv?f+'⁻¹':f);
+  const r=$('res');r.className='';
+  try{const v=evaluate(ex);r.textContent=/[+−×÷(√sct]/.test(ex.replace(/^−/,''))?fmt(v):''}catch(e){r.textContent=''}
+}
+function commit(){
+  const r=$('res');
+  if(!ex)return;
+  try{const v=evaluate(ex),out=fmt(v);
+    hist.unshift({e:ex,r:out});hist=hist.slice(0,30);save();
+    $('expr').textContent=ex;r.textContent='= '+out;r.className='fin';last=out;done=true}
+  catch(e){r.textContent=e||'エラー';r.className='err'}
+}
+function press(k){
+  if(k==='='){commit();return}
+  if(k==='ac'){ex='';done=false;inv=false;render();return}
+  if(k==='2nd'){inv=!inv;render();return}
+  if(k==='bs'){if(done){done=false;render();return}const m=MULTI.find(w=>ex.endsWith(w));ex=m?ex.slice(0,-m.length):ex.slice(0,-1);render();return}
+  if(done){ex=/^[+−×÷]$/.test(k)?last:'';done=false}
+  if(k==='sin'||k==='cos'||k==='tan'){ex+=k+(inv?'⁻¹':'')+'(';inv=false}
+  else if(k==='()'){const open=(ex.match(/\(/g)||[]).length-(ex.match(/\)/g)||[]).length;ex+=(open>0&&/[0-9.)]$/.test(ex))?')':'('}
+  else ex+=k;
+  render();
+}
+function list(){
+  const L=$('list');L.innerHTML='';
+  if(!hist.length){L.innerHTML='<li class="empty">まだ記録はありません</li>';return}
+  hist.forEach(h=>{const li=document.createElement('li'),b=document.createElement('button');
+    const a=document.createElement('small');a.textContent=h.e;
+    const c=document.createElement('span');c.textContent='= '+h.r;
+    b.append(a,c);b.onclick=()=>{ex=h.e;done=false;$('sheet').classList.remove('open');render()};li.append(b);L.append(li)});
+}
+$('keys').addEventListener('click',e=>{const b=e.target.closest('button');if(b)press(b.dataset.k)});
+$('hbtn').onclick=()=>{list();$('sheet').classList.add('open')};
+$('close').onclick=()=>$('sheet').classList.remove('open');
+$('clr').onclick=()=>{hist=[];save();list()};
+document.addEventListener('keydown',e=>{
+  const map={'*':'×','/':'÷','-':'−','+':'+','Enter':'=','=':'=','Backspace':'bs','Escape':'ac','(':'()',')':'()','.':'.','s':'sin','c':'cos','t':'tan'};
+  const k=/^[0-9]$/.test(e.key)?e.key:map[e.key];
+  if(k){e.preventDefault();press(k)}
+});
+render();
+try{if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js")}catch(e){}
+}
+</script>
+</body>
+</html>
