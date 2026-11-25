@@ -76,7 +76,7 @@ button:focus-visible{outline:3px solid var(--line);outline-offset:2px}
     <button class="f" data-k="sin">sin</button><button class="f" data-k="cos">cos</button><button class="f" data-k="tan">tan</button>
     <button class="f sh" data-k="2nd" aria-pressed="false">逆</button>
     <button class="ac" data-k="ac">AC</button><button class="o" data-k="()">( )</button>
-    <button class="o" data-k="√(">√</button><button class="o" data-k="÷">÷</button>
+    <button class="o" data-k="%">%</button><button class="o" data-k="÷">÷</button>
     <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="o" data-k="×">×</button>
     <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="o" data-k="−">−</button>
     <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="o" data-k="+">+</button>
@@ -109,7 +109,7 @@ function tokenize(s){
     if(/[0-9.]/.test(c)){let j=i;while(j<s.length&&/[0-9.e]/.test(s[j])||(s[j]==='-'&&s[j-1]==='e'))j++;const v=s.slice(i,j);if(isNaN(+v))throw'数字の入力が正しくありません';t.push({n:+v});i=j;continue}
     const m=['sin⁻¹','cos⁻¹','tan⁻¹','sin','cos','tan','√'].find(w=>s.startsWith(w,i));
     if(m){t.push({f:m});i+=m.length;continue}
-    if('+−×÷()'.includes(c)){t.push({o:c});i++;continue}
+    if('+−×÷()%'.includes(c)){t.push({o:c});i++;continue}
     throw'入力が正しくありません';
   }
   return t;
@@ -130,13 +130,14 @@ function evaluate(s){
   const t=tokenize(s);let p=0;
   const is=o=>t[p]&&t[p].o===o;
   const startsVal=k=>k&&(k.n!==undefined||k.f||k.o==='(');
-  function expr(){let v=term();while(is('+')||is('−')){const o=t[p++].o;const r=term();v=o==='+'?v+r:v-r}return v}
+  function expr(){let v=term();while(is('+')||is('−')){const o=t[p++].o,st=p;let r=term();if(p===st+2&&t[st].n!==undefined&&t[st+1].o==='%')r=v*r;v=o==='+'?v+r:v-r}return v}
   function term(){let v=unary();for(;;){
     if(is('×')){p++;v*=unary()}
     else if(is('÷')){p++;const r=unary();if(r===0)throw'0 では割れません';v/=r}
     else if(startsVal(t[p]))v*=unary();
     else return v}}
-  function unary(){if(is('−')){p++;return -unary()}if(is('+')){p++;return unary()}return prim()}
+  function unary(){if(is('−')){p++;return -unary()}if(is('+')){p++;return unary()}return post()}
+  function post(){let v=prim();while(is('%')){p++;v/=100}return v}
   function group(){const v=expr();if(is(')'))p++;return v}
   function prim(){
     const k=t[p++];
@@ -165,7 +166,7 @@ function render(){
   const sh=document.querySelector('.sh');sh.setAttribute('aria-pressed',inv);
   ['sin','cos','tan'].forEach(f=>document.querySelector(`[data-k=${f}]`).textContent=inv?f+'⁻¹':f);
   const r=$('res');r.className='';
-  try{const v=evaluate(ex);r.textContent=/[+−×÷(√sct]/.test(ex.replace(/^−/,''))?fmt(v):''}catch(e){r.textContent=''}
+  try{const v=evaluate(ex);r.textContent=/[+−×÷(√sct%]/.test(ex.replace(/^−/,''))?fmt(v):''}catch(e){r.textContent=''}
   fit(r);
 }
 function commit(){
@@ -200,7 +201,7 @@ $('hbtn').onclick=()=>{list();$('sheet').classList.add('open')};
 $('close').onclick=()=>$('sheet').classList.remove('open');
 $('clr').onclick=()=>{hist=[];save();list()};
 document.addEventListener('keydown',e=>{
-  const map={'*':'×','/':'÷','-':'−','+':'+','Enter':'=','=':'=','Backspace':'bs','Escape':'ac','(':'()',')':'()','.':'.','s':'sin','c':'cos','t':'tan'};
+  const map={'*':'×','/':'÷','-':'−','+':'+','Enter':'=','=':'=','Backspace':'bs','Escape':'ac','(':'()',')':'()','.':'.','%':'%','s':'sin','c':'cos','t':'tan'};
   const k=/^[0-9]$/.test(e.key)?e.key:map[e.key];
   if(k){e.preventDefault();press(k)}
 });
